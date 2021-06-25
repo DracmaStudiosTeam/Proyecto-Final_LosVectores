@@ -1,9 +1,9 @@
 //********************************************************************************************************************************************************************************************************
 //Nombre			: Final_LosVectores
-//Autor				: AKE GAMBOA ALEJANDRO
+//Autor				: Los Vectores {AKE GAMBOA ALEJANDRO, BRICENO EUAN RODRIGO DANIEL, NAHUAT CHI JOSE MARTIN, ORTIZ PALACIOS ANDRES ENRIQUE}
 //Fecha				: 23/06/2021
 //Version			: 1.0
-//Descripcion			: Programa de analisis de promedios escolares en ANSI C
+//Descripcion		: Programa de analisis de promedios escolares en ANSI C
 //********************************************************************************************************************************************************************************************************
 
 #include <stdio.h>
@@ -12,12 +12,14 @@
 #include <locale.h> // setlocale
 #include <string.h> // strlen, strcmp, strcpy
 #include <windows.h> // system, gotoxy, getch2
+#include <dir.h> //Direcciones
+#include <stdlib.h> //System, Exit, Remove
 
 // Macros
 #define ARRIBA 'w' // Presionar w para ir hacia arriba
 #define ABAJO 's' // Presionar s para ir hacia abajo
 #define ENTER 13
-#define N 100 // Numero de caracteres que puede contener la variable nombre[N]
+#define N 35 // Numero de caracteres que puede contener la variable nombre[N]
 #define K 50 // Numero de alumnos
 #define M 3 // Numero de grupos en total
 
@@ -59,9 +61,12 @@ void selAsignatura(int numAlum, int opc, int enc, char opcSel[][100], char grp[]
 void visCalificaciones(int grp, int numAlum, char asig[][30]); // 6.2
 void verRanking(char grp[], int gpo); // 6.3
 void modCalificacion(int alum, int gp, char grp[], int asig); // 6.4
-void iniciar_Estructura(void); // U
+void iniciar_Estructura(int); // Iniciar estructura
 int gotoxy(USHORT x, USHORT y); // API de Windows
 char getch2(void); // API de Windows
+void tostring(char [], int); //Convertir int a string
+void crearFicherosDirecciones(char *dirname); //Verificar si existen los ficheros y crealos en caso
+int existeArchivoAccesar(char *dirname);//Se puede acceder al fichero
 
 // Principal
 int main()
@@ -74,6 +79,11 @@ int main()
 // Menu que se le despegara al usuario
 void menuPrincipal(void)
 {
+	//Direccion en la cual se busca los archivos
+	char dirname[50] = "Grupo";
+	//Se checa si se tiene datos previos del programa
+	crearFicherosDirecciones(dirname);
+	
 	int dt = 1; // Mantiene inicializado al bucle de manera infinita
 	int opc1, opc2; // Determinan la opcion seleccionada
 	int cont1 = 1; // Verdadero hasta tener usuario y contrasenia establecidos
@@ -82,7 +92,6 @@ void menuPrincipal(void)
 	char contra[9] = {'U', 's', 'u', 'a', 'r', 'i', 'o', '1'}; // Por defecto
 	char nomUsuario[100]; // Almacenara el nuevo nombre del usuario
 	char nomContra[100]; // Almacenara la nueva contrasenia del usuario
-	iniciar_Estructura(); // Se asignan las calificaciones y promedios por defecto
 	//Bucle que repite a todo el programa
 	do
 	{
@@ -953,7 +962,7 @@ void selAlumno(int opc, int opc2, char opcSel[][100], char grp[])
 		// Imprimir la lista de los nombres de los alumnos registrados, previo a la utilizacion de este programa
 		for (i = 0; i <K; i++)
 		{
-			strcpy(grupos[opc].numAlum[i].nombre, "Nombre_Alumno"); // Imprimir el nombre de los alumno del grupo seleccionado
+			//strcpy(grupos[opc].numAlum[i].nombre, "Nombre_Alumno"); // Imprimir el nombre de los alumno del grupo seleccionado
 			gotoxy(11, 7+i); printf("%s", grupos[opc].numAlum[i].nombre);
 			if (i <9)
 			{
@@ -1239,6 +1248,158 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 			break;
 		}
 	} while (def !=0); // Mientras no se apriente a Guardar Cambios
+	
+	//Antes de salir de la funcion calcular el promedio del alumno de nuevo
+	grupos[gp].numAlum[alum].prom = (grupos[gp].numAlum[alum].esp+grupos[gp].numAlum[alum].mate+grupos[gp].numAlum[alum].hist+grupos[gp].numAlum[alum].cienc+grupos[gp].numAlum[alum].artes+grupos[gp].numAlum[alum].tecno+grupos[gp].numAlum[alum].fcye)/7;
+
+	//archivo al cual se accede
+	FILE *archivo;
+	
+	//Direccion en la cual se busca los archivos
+	char dirname[50] = "Grupo";
+	
+	//nombre del archivo de texto
+	char nombreAlumno[20] = "/Nombre_Alumno";
+	
+	//Extension del archivo
+	char* extension = ".txt";
+	
+	//String de la conversion del int
+	char convertirInt[10];
+
+	if(gp == 0){
+		//Nombre de la carpeta
+		char* nombreCarpeta = "/A";
+	
+		//Se crea la direccion de la carpeta
+		strcat(dirname,nombreCarpeta);
+		
+		//Agrega el numero del alumno
+		tostring(convertirInt, alum+1);
+				
+		//Se le agrega al string
+		strcat(nombreAlumno,convertirInt);
+		
+		//Se le agrega la extension
+		strcat(nombreAlumno,extension);
+				
+		//Se tiene la dirrecion del txt del alumno 'contador'
+		strcat(dirname,nombreAlumno);
+	
+		//Elimina el anterior archivo
+		remove(dirname);
+		
+		//crea los ficheros
+		archivo = fopen(dirname, "w");
+								
+		/* fopen() regresa NULL si la ultima operacion no se pudo completar */
+		if(archivo == NULL)
+		{
+			/* Si no se puede crear, salir del programa */
+			printf("No se pudo crear el archivo.\n");
+			exit(EXIT_FAILURE);
+		}
+		
+		//Modificar el archivo de texto que contiene estos datos
+		fwrite (&grupos[gp].numAlum[alum], sizeof(asig), 20, archivo);
+		
+		//Checa si la funcion anterior funciono de manera correcta
+		if(fwrite != 0){
+		//printf("El contenido se escribio de manera correcta!\n");
+		}else{ 
+		printf("Error al escribir en el archivo!\n");
+		}
+		// Cierra archivo
+		fclose (archivo);
+	}
+	
+	if(gp == 1){
+		
+		//Nombre de la carpeta
+		char* nombreCarpeta = "/B";
+	
+		//Se crea la direccion de la carpeta
+		strcat(dirname,nombreCarpeta);
+		
+		//Agrega el numero del alumno
+		tostring(convertirInt, alum+1);
+				
+		//Se le agrega al string
+		strcat(nombreAlumno,convertirInt);
+		
+		//Se le agrega la extension
+		strcat(nombreAlumno,extension);
+				
+		//Se tiene la dirrecion del txt del alumno 'contador'
+		strcat(dirname,nombreAlumno);
+	
+		//crea los ficheros
+		archivo = fopen(dirname, "w");
+								
+		/* fopen() regresa NULL si la ultima operacion no se pudo completar */
+		if(archivo == NULL)
+		{
+			/* Si no se puede crear, salir del programa */
+			printf("No se pudo crear el archivo.\n");
+			exit(EXIT_FAILURE);
+		}
+		
+		//Modificar el archivo de texto que contiene estos datos
+		fwrite (&grupos[gp].numAlum[alum], sizeof(asig), 20, archivo);
+		
+		//Checa si la funcion anterior funciono de manera correcta
+		if(fwrite != 0){
+		//printf("El contenido se escribio de manera correcta!\n");
+		}else{ 
+		printf("Error al escribir en el archivo!\n");
+		}
+		// Cierra archivo
+		fclose (archivo);
+	}
+	
+	if(gp == 2){
+		
+		//Nombre de la carpeta
+		char* nombreCarpeta = "/C";
+		
+		//Se crea la direccion de la carpeta
+		strcat(dirname,nombreCarpeta);
+		
+		//Agrega el numero del alumno
+		tostring(convertirInt, alum+1);
+				
+		//Se le agrega al string
+		strcat(nombreAlumno,convertirInt);
+		
+		//Se le agrega la extension
+		strcat(nombreAlumno,extension);
+				
+		//Se tiene la dirrecion del txt del alumno 'contador'
+		strcat(dirname,nombreAlumno);
+	
+		//crea los ficheros
+		archivo = fopen(dirname, "w");
+								
+		/* fopen() regresa NULL si la ultima operacion no se pudo completar */
+		if(archivo == NULL)
+		{
+			/* Si no se puede crear, salir del programa */
+			printf("No se pudo crear el archivo.\n");
+			exit(EXIT_FAILURE);
+		}
+		
+		//Modificar el archivo de texto que contiene estos datos
+		fwrite (&grupos[gp].numAlum[alum], sizeof(asig), 20, archivo);
+		
+		//Checa si la funcion anterior funciono de manera correcta
+		if(fwrite != 0){
+		//printf("El contenido se escribio de manera correcta!\n");
+		}else{ 
+		printf("Error al escribir en el archivo!\n");
+		}
+		// Cierra archivo
+		fclose (archivo);
+	}
 }
 
 // Se imprime el ranking de los 3 mejores, de acuerdo con el grupo seleccionado
@@ -1350,24 +1511,606 @@ void visCalificaciones(int grp, int numAlum, char asig[][30])
 }
 
 // Inicializar las calificaciones y promedios de todos los alumnos, por cada grupo, por defecto
-void iniciar_Estructura(void)
+void iniciar_Estructura(int index)
 {
-	int i, j; // Contadores
+	int j; // Contadores
 	// Llena, por defecto, las calificaciones del alumno seleccionado, por asignatura
-	for (i = 0; i <3; i++) // Va cambiando el grupo
+	
+	for (j = 0; j <K; j++) // Va cambiando el numero de alumno
 	{
-		for (j = 0; j <K; j++) // Va cambiando el numero de alumno
+		strcpy(grupos[index].numAlum[j].nombre, "Nombre_Alumno"); // Para Nombre
+		grupos[index].numAlum[j].esp = 10; // Para Espanol
+		grupos[index].numAlum[j].mate = 10; // Para Matematicas
+		grupos[index].numAlum[j].hist = 10; // Para Historia
+		grupos[index].numAlum[j].cienc = 10; // Para Ciencias
+		grupos[index].numAlum[j].artes = 10; // Para Artes
+		grupos[index].numAlum[j].tecno = 10; // Para Tecnologia
+		grupos[index].numAlum[j].fcye = 10; // Para Formacion Civica Y Etica
+		// Calcular el promedio
+		grupos[index].numAlum[j].prom = (grupos[index].numAlum[j].esp+grupos[index].numAlum[j].mate+grupos[index].numAlum[j].hist+grupos[index].numAlum[j].cienc+grupos[index].numAlum[j].artes+grupos[index].numAlum[j].tecno+grupos[index].numAlum[j].fcye)/7;
+	}
+}
+
+int existeArchivoAccesar(char *dirname)
+{
+	// Checa si existe el archivo
+	if (access(dirname, F_OK) == -1)
+		return 0;
+	
+	return 1;
+}
+
+//Convertir a string
+void tostring(char str[], int num)
+{
+	int i, rem, len = 0, n;
+	
+	n = num;
+	while (n != 0)
+	{
+		len++;
+		n /= 10;
+	}
+	for (i = 0; i < len; i++)
+	{
+		rem = num % 10;
+		num = num / 10;
+		str[len - (i + 1)] = rem + '0';
+	}
+	str[len] = '\0';
+}
+
+//Funcion para crear las direccion en las cuales se van a guardar los ficheros 
+//seguido de los ficheros en caso de no tener previamente las carpetas y ficheros
+void crearFicherosDirecciones(char *dirname){
+	int check;
+	//Contador para el nombre de los ficheros
+	int contador = 1;
+	int fila;
+	//archivo al cual se accede
+	FILE *archivo;
+	//Direccion
+	char aux[50];
+	//Direccion de la carpeta del grupo en la que se encuentra
+	char auxCarpetaGrupo[50];
+	//String de la conversion del int
+	char convertirInt[10];
+	
+	//Nombre de la carpeta
+	char* nombreCarpeta = "/A";
+	//Extension del archivo
+	char* extension = ".txt";
+	
+	//Verificar si existe la dirrecion 'Grupo'
+	if (existeArchivoAccesar(dirname)){
+	
+		//printf("'%s' is a directory.\n", dirname);
+		
+		//Se crea la ruta de la carpeta 'Gruppo/A'
+		strcpy(aux, dirname);
+		strcat(aux,nombreCarpeta);
+		
+		//Se guarda la ruta de la carpeta 'Gruppo/A'
+		strcpy(auxCarpetaGrupo, aux);
+		
+		//printf("Ruta del archivo: %s", aux);
+		
+			for (fila = 0; fila <K; fila++)
+			{
+				//Lectura de archivos para structura
+				FILE *inf;
+				
+				//Guarda la ruta del grupo
+				strcpy(aux, auxCarpetaGrupo);
+				//nombre del archivo de texto
+				char nombreAlumno[20] = "/Nombre_Alumno";
+				
+				//Agrega el numero del alumno
+				tostring(convertirInt, contador);
+				
+				//Se le agrega al string
+				strcat(nombreAlumno,convertirInt);
+				
+				//Se le agrega la extension
+				strcat(nombreAlumno,extension);
+				
+				//Se tiene la dirrecion del txt del alumno 'contador'
+				strcat(aux,nombreAlumno);
+				
+				//Se checa si existe los archivos de alumnos
+				if (existeArchivoAccesar(aux)){
+					//Abre los archivos para leer
+					inf = fopen (aux, "r");
+					//No existe
+					if (inf == NULL) {
+						fprintf(stderr, "\nError to open the file\n");
+						exit (1);
+					}
+					//Se leen todos los datos del archivo de texto y se almancena en el struct
+					while(fread(&grupos[0].numAlum[fila], sizeof(asig), 1, inf)){
+						//Impresion de lectura de todos los archivos
+						//printf ("Nombre = %s esp = %.1f mate = %.1f hist = %.1f cien = %.1f artes = %.1f tecno = %.1f fcye = %.1f prom = %.1f \n", inp.nombre, inp.esp, inp.mate, inp.hist, inp.cienc, inp.artes, inp.tecno, inp.fcye, inp.prom);
+					}
+					//Se cierra archivo abierto
+					fclose (inf);
+					
+					//printf("archivo %s se creo\n", nombreAlumno);
+				}else{
+					//Se creara estrucura si no existe la carpeta grupos
+					iniciar_Estructura(0);
+					check = mkdir(auxCarpetaGrupo);
+					
+					//Checa si la carpeta 'Grupo/A' existe
+					if (!check){
+						//printf("Directorio '%s' creado\n", auxCarpetaGrupo);
+						//Creacion de archivos de texto 
+						for (fila = 0; fila <K; fila++)
+						{
+							//Crea la ruta de los ficheros a crear
+							strcpy(aux, auxCarpetaGrupo);
+							char nombreAlumno[20] = "/Nombre_Alumno";
+							
+							tostring(convertirInt, contador);
+							strcat(nombreAlumno,convertirInt);
+							
+							strcat(nombreAlumno,extension);
+							
+							strcat(aux,nombreAlumno);
+							
+							//Checa si existen
+							if (archivo = fopen(aux, "r")) {
+								fclose(archivo);
+								//printf("Archivo existe %s \n", nombreAlumno);
+							} else {
+								
+								//crea los ficheros
+								archivo = fopen(aux, "w");
+								
+								/* fopen() regresa NULL si la ultima operacion no se pudo completar */
+								if(archivo == NULL)
+								{
+									/* Si no se puede crear, salir del programa */
+									printf("No se pudo crear el archivo.\n");
+									exit(EXIT_FAILURE);
+								}
+								
+								//Lee el los datos del struct y lo pone dentro del archivo
+								fwrite (&grupos[0].numAlum[fila], sizeof(asig), 1, archivo);
+								
+								//Checa si la funcion anterior funciono de manera correcta
+								if(fwrite != 0){
+									//printf("El contenido se escribio de manera correcta!\n");
+								}else{ 
+									printf("Error al escribir en el archivo!\n");
+								}
+								// Cierra archivo
+								fclose (archivo);
+							}
+							//Contador para el nombre de los ficheros
+							contador++;
+						}
+					}else {
+					//	printf("No se puede crear el directorio '%s'\n", auxCarpetaGrupo);
+					}
+				}
+				contador++;
+			}
+		contador = 1;
+		
+		strcpy(aux, dirname);
+		nombreCarpeta = "/B";
+		
+		//Direccion de la carpeta'Grupo/B'
+		strcat(aux,nombreCarpeta);
+		strcpy(auxCarpetaGrupo, aux);
+		
+		
+		for (fila = 0; fila <K; fila++)
 		{
-			strcpy(grupos[i].numAlum[j].nombre, "Nombre_Alumno"); // Para Nombre
-			grupos[i].numAlum[j].esp = 10; // Para Espanol
-			grupos[i].numAlum[j].mate = 10; // Para Matematicas
-			grupos[i].numAlum[j].hist = 10; // Para Historia
-			grupos[i].numAlum[j].cienc = 10; // Para Ciencias
-			grupos[i].numAlum[j].artes = 10; // Para Artes
-			grupos[i].numAlum[j].tecno = 10; // Para Tecnologia
-			grupos[i].numAlum[j].fcye = 10; // Para Formacion Civica Y Etica
-			// Calcular el promedio
-			grupos[i].numAlum[j].prom = (grupos[i].numAlum[j].esp+grupos[i].numAlum[j].mate+grupos[i].numAlum[j].hist+grupos[i].numAlum[j].cienc+grupos[i].numAlum[j].artes+grupos[i].numAlum[j].tecno+grupos[i].numAlum[j].fcye)/7;
+			//Lectura de archivos para structura
+			FILE *inf;
+			
+			//Guarda la ruta del grupo
+			strcpy(aux, auxCarpetaGrupo);
+			//nombre del archivo de texto
+			char nombreAlumno[20] = "/Nombre_Alumno";
+			
+			//Agrega el numero del alumno
+			tostring(convertirInt, contador);
+			
+			//Se le agrega al string
+			strcat(nombreAlumno,convertirInt);
+			
+			//Se le agrega la extension
+			strcat(nombreAlumno,extension);
+			
+			//Se tiene la dirrecion del txt del alumno 'contador'
+			strcat(aux,nombreAlumno);
+			
+			//Checa si existen los ficheros
+			if (existeArchivoAccesar(aux)){
+				
+				//Lee el fichero optenido
+				inf = fopen (aux, "r");
+				if (inf == NULL) {
+					fprintf(stderr, "\nError to open the file\n");
+					exit (1);
+				}
+				//Se llena todos los datos del struct
+				while(fread(&grupos[1].numAlum[fila], sizeof(asig), 1, inf)){
+					//Impresion de lectura
+					//printf ("Nombre = %s esp = %.1f mate = %.1f hist = %.1f cien = %.1f artes = %.1f tecno = %.1f fcye = %.1f prom = %.1f \n", inp.nombre, inp.esp, inp.mate, inp.hist, inp.cienc, inp.artes, inp.tecno, inp.fcye, inp.prom);
+				}
+				//Se cierra el fichero
+				fclose (inf);
+				
+				//printf("archivo %s se creo\n", nombreAlumno);
+			}else{
+				//Temporal para pruebas, cuando acabe solo se creara estrucura si no existe la carpeta grupos
+				iniciar_Estructura(1);
+				check = mkdir(auxCarpetaGrupo);
+				
+				//Checa sino existe la ruta 'Grupo/B'
+				if (!check){
+					//printf("Directorio '%s' creado\n", auxCarpetaGrupo);
+					//Creacion de archivos de texto 
+					for (fila = 0; fila <K; fila++)
+					{
+						//Direccion de los ficheros
+						strcpy(aux, auxCarpetaGrupo);
+						char nombreAlumno[20] = "/Nombre_Alumno";
+						
+						tostring(convertirInt, contador);
+						strcat(nombreAlumno,convertirInt);
+						
+						strcat(nombreAlumno,extension);
+						
+						strcat(aux,nombreAlumno);
+						
+						//Verifica que no existe
+						if (archivo = fopen(aux, "r")) {
+							fclose(archivo);
+							//printf("Archivo existe %s \n", nombreAlumno);
+						} else {
+							//Crea el fichero con los datos del struct
+							archivo = fopen(aux, "w");
+							
+							/* fopen() regresa NULL si la ultima operacion no se pudo completar */
+							if(archivo == NULL)
+							{
+								/* Si no se puede crear, salir del programa */
+								printf("No se pudo crear el archivo.\n");
+								exit(EXIT_FAILURE);
+							}
+							
+							//Lee el los datos del struct y lo pone dentro del archivo
+							fwrite (&grupos[1].numAlum[fila], sizeof(asig), 1, archivo);
+							
+							//Checa si la funcion anterior funciono de manera correcta
+							if(fwrite != 0){
+								//printf("El contenido se escribio de manera correcta!\n");
+							}else{ 
+								//printf("Error al escribir en el archivo!\n");
+							}
+							// Cierra archivo
+							fclose (archivo);
+						}
+						contador++;
+					}
+					contador = 1;
+				}else {
+					//printf("No se puede crear el directorio '%s'\n", aux);
+				}
+			}
+			contador++;
+		}
+		
+		contador = 1;
+		strcpy(aux, dirname);
+		nombreCarpeta = "/C";
+		
+		//Direccion de 'Grupo/C'
+		strcat(aux,nombreCarpeta);
+		strcpy(auxCarpetaGrupo, aux);
+		
+		
+		for (fila = 0; fila <K; fila++)
+		{
+			//Lectura de archivos para structura
+			FILE *inf;
+			
+			//Guarda la ruta del grupo
+			strcpy(aux, auxCarpetaGrupo);
+			//nombre del archivo de texto
+			char nombreAlumno[20] = "/Nombre_Alumno";
+			
+			//Agrega el numero del alumno
+			tostring(convertirInt, contador);
+			
+			//Se le agrega al string
+			strcat(nombreAlumno,convertirInt);
+			
+			//Se le agrega la extension
+			strcat(nombreAlumno,extension);
+			
+			//Se tiene la dirrecion del txt del alumno 'contador'
+			strcat(aux,nombreAlumno);
+			
+			//Verifica si existe direccion
+			if (existeArchivoAccesar(aux)){
+				//Abre el finchero para ver si existe
+				inf = fopen (aux, "r");
+				if (inf == NULL) {
+					fprintf(stderr, "\nError to open the file\n");
+					exit (1);
+				}
+				//Lee los datos y los pone en el struct
+				while(fread(&grupos[2].numAlum[fila], sizeof(asig), 1, inf)){
+					//Impresion de lectura
+					//printf ("Nombre = %s esp = %.1f mate = %.1f hist = %.1f cien = %.1f artes = %.1f tecno = %.1f fcye = %.1f prom = %.1f \n", inp.nombre, inp.esp, inp.mate, inp.hist, inp.cienc, inp.artes, inp.tecno, inp.fcye, inp.prom);
+				}
+				fclose (inf);
+				
+				//printf("archivo %s se creo\n", nombreAlumno);
+			}else{
+				//Se creara estrucura si no existe la carpeta grupos
+				iniciar_Estructura(2);
+				check = mkdir(auxCarpetaGrupo);
+				
+				//Verifica si existe la carpeta 'Grupo/C'
+				if (!check){
+					//printf("Directorio '%s' creado\n", auxCarpetaGrupo);
+					//Creacion de archivos de texto 
+					for (fila = 0; fila <K; fila++)
+					{
+						strcpy(aux, auxCarpetaGrupo);
+						char nombreAlumno[20] = "/Nombre_Alumno";
+						
+						tostring(convertirInt, contador);
+						strcat(nombreAlumno,convertirInt);
+						
+						strcat(nombreAlumno,extension);
+						
+						strcat(aux,nombreAlumno);
+						
+						//Verifica que no exista
+						if (archivo = fopen(aux, "r")) {
+							fclose(archivo);
+							//printf("Archivo existe %s \n", nombreAlumno);
+						} else {
+							//Crea el fichero
+							archivo = fopen(aux, "w");
+							
+							/* fopen() regresa NULL si la ultima operacion no se pudo completar */
+							if(archivo == NULL)
+							{
+								/* Si no se puede crear, salir del programa */
+								printf("No se pudo crear el archivo.\n");
+								exit(EXIT_FAILURE);
+							}
+							
+							//Lee el los datos del struct y lo pone dentro del archivo
+							fwrite (&grupos[2].numAlum[fila], sizeof(asig), 1, archivo);
+							
+							//Checa si la funcion anterior funciono de manera correcta
+							if(fwrite != 0){
+								//printf("El contenido se escribio de manera correcta!\n");
+							}else{ 
+								printf("Error al escribir en el archivo!\n");
+							}
+							// Cierra archivo
+							fclose (archivo);
+						}
+						contador++;
+					}
+					contador = 1;
+				}else {
+					//printf("No se puede crear el directorio '%s'\n", aux);
+				}
+			}
+			contador++;
+		}
+		//Crear la direccion Grupo y las carpetas A,B,C
+	}else{
+		check = mkdir(dirname);
+		
+		//Se crea Grupo
+		if (!check){
+			//printf("Directorio '%s' creado\n", dirname);
+			
+			//Direccion de 'Grupo/A'
+			strcpy(aux, dirname);
+			strcat(aux,nombreCarpeta);
+			
+			strcpy(auxCarpetaGrupo, aux);
+			
+			//Se crea Grupo/A
+			check = mkdir(auxCarpetaGrupo);
+			//Se creara estrucura si no existe la carpeta grupos
+			iniciar_Estructura(0);
+			if (!check){
+				//printf("Directorio '%s' creado\n", auxCarpetaGrupo);
+				
+				//Creacion de archivos de texto 
+				for (fila = 0; fila <K; fila++)
+				{
+					//Direccion de los ficheros
+					strcpy(aux, auxCarpetaGrupo);
+					char nombreAlumno[20] = "/Nombre_Alumno";
+					
+					tostring(convertirInt, contador);
+					strcat(nombreAlumno,convertirInt);
+					
+					strcat(nombreAlumno,extension);
+					
+					strcat(aux,nombreAlumno);
+					
+					//Verifica que no existen
+					if (archivo = fopen(aux, "r")) {
+						fclose(archivo);
+						//printf("Archivo existe %s \n", nombreAlumno);
+					} else {
+						//Crea los fichetos
+						archivo = fopen(aux, "w");
+						
+						/* fopen() regresa NULL si la ultima operacion no se pudo completar */
+						if(archivo == NULL)
+						{
+							/* Si no se puede crear, salir del programa */
+							printf("No se pudo crear el archivo.\n");
+							exit(EXIT_FAILURE);
+						}
+						
+						//Lee el los datos del struct y lo pone dentro del archivo
+						fwrite (&grupos[0].numAlum[fila], sizeof(asig), 1, archivo);
+						
+						//Checa si la funcion anterior funciono de manera correcta
+						if(fwrite != 0){
+							//printf("El contenido se escribio de manera correcta!\n");
+						}else{ 
+							printf("Error al escribir en el archivo!\n");
+						}
+						// Cierra archivo
+						fclose (archivo);
+					}
+					contador++;
+				}
+				contador = 1;
+			}else {
+				//printf("No se puede crear el directorio '%s'\n", auxCarpetaGrupo);
+			}
+			
+			strcpy(aux, dirname);
+			nombreCarpeta = "/B";
+			
+			//Direccion de 'Grupo/B'
+			strcat(aux,nombreCarpeta);
+			
+			strcpy(auxCarpetaGrupo, aux);
+			//Se crea Grupo/B
+			check = mkdir(auxCarpetaGrupo);
+			//Se creara estrucura si no existe la carpeta grupos
+			iniciar_Estructura(1);
+			if (!check){
+				//printf("Directorio '%s' creado\n", auxCarpetaGrupo);
+				
+					//Creacion de archivos de texto 
+					for (fila = 0; fila <K; fila++)
+					{
+						//Direccion del fichero
+						strcpy(aux, auxCarpetaGrupo);
+						char nombreAlumno[20] = "/Nombre_Alumno";
+							
+						tostring(convertirInt, contador);
+						strcat(nombreAlumno,convertirInt);
+							
+						strcat(nombreAlumno,extension);
+							
+						strcat(aux,nombreAlumno);
+						
+						//Verifica si existe fichero	
+						if (archivo = fopen(aux, "r")) {
+							fclose(archivo);
+							//printf("Archivo existe %s \n", nombreAlumno);
+						} else {
+							//Crea el fichero
+							archivo = fopen(aux, "w");
+								
+							/* fopen() regresa NULL si la ultima operacion no se pudo completar */
+							if(archivo == NULL)
+							{
+								/* Si no se puede crear, salir del programa */
+								printf("No se pudo crear el archivo.\n");
+								exit(EXIT_FAILURE);
+							}
+								
+							//Lee el los datos del struct y lo pone dentro del archivo
+							fwrite (&grupos[1].numAlum[fila], sizeof(asig), 1, archivo);
+								
+							//Checa si la funcion anterior funciono de manera correcta
+							if(fwrite != 0){
+								//printf("El contenido se escribio de manera correcta!\n");
+							}else{ 
+								printf("Error al escribir en el archivo!\n");
+							}
+							// Cierra archivo
+							fclose (archivo);
+						}
+						contador++;
+					}
+					contador = 1;
+				}else {
+				//printf("No se puede crear el directorio '%s'\n", auxCarpetaGrupo);
+				}
+			
+			
+			strcpy(aux, dirname);
+			nombreCarpeta = "/C";
+			
+			//Direccion de 'grupo/C'
+			strcat(aux,nombreCarpeta);
+			
+			strcpy(auxCarpetaGrupo, aux);
+			
+			//Se crea Grupo/C
+			check = mkdir(auxCarpetaGrupo);
+			//Se creara estrucura si no existe la carpeta grupos
+			iniciar_Estructura(2);
+			if (!check){
+				//printf("Directorio '%s' creado\n", auxCarpetaGrupo);
+				
+				//Creacion de archivos de texto 
+				for (fila = 0; fila <K; fila++)
+				{
+					//Direccion del fichero
+					strcpy(aux, auxCarpetaGrupo);
+					char nombreAlumno[20] = "/Nombre_Alumno";
+					
+					tostring(convertirInt, contador);
+					strcat(nombreAlumno,convertirInt);
+					
+					strcat(nombreAlumno,extension);
+					
+					strcat(aux,nombreAlumno);
+					
+					//Verifica que no exista
+					if (archivo = fopen(aux, "r")) {
+						fclose(archivo);
+						//printf("Archivo existe %s \n", nombreAlumno);
+					} else {
+						//Crea el fichero
+						archivo = fopen(aux, "w");
+						
+						/* fopen() regresa NULL si la ultima operacion no se pudo completar */
+						if(archivo == NULL)
+						{
+							/* Si no se puede crear, salir del programa */
+							printf("No se pudo crear el archivo.\n");
+							exit(EXIT_FAILURE);
+						}
+						
+						//Lee el los datos del struct y lo pone dentro del archivo
+						fwrite (&grupos[2].numAlum[fila], sizeof(asig), 1, archivo);
+						
+						//Checa si la funcion anterior funciono de manera correcta
+						if(fwrite != 0){
+							//printf("El contenido se escribio de manera correcta!\n");
+						}else{ 
+							printf("Error al escribir en el archivo!\n");
+						}
+						// Cierra archivo
+						fclose (archivo);
+					}
+					contador++;
+				}
+				contador = 1;
+			}else {
+				//printf("No se puede crear el directorio '%s'\n", auxCarpetaGrupo);
+			}
+			
+		}else {
+			//printf("No se puede crear el directorio '%s'\n", dirname);
 		}
 	}
 }
+
