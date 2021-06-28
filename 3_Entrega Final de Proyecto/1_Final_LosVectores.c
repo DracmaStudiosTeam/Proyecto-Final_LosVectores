@@ -8,12 +8,11 @@
 
 #include <stdio.h>
 #include <ctype.h> // toupper
-#include <stdlib.h> // exit
+#include <stdlib.h> //System, Exit, Remove
 #include <locale.h> // setlocale
 #include <string.h> // strlen, strcmp, strcpy
 #include <windows.h> // system, gotoxy, getch2
 #include <dir.h> //Direcciones
-#include <stdlib.h> //System, Exit, Remove
 
 // Macros
 #define ARRIBA 'w' // Presionar w para ir hacia arriba
@@ -55,16 +54,16 @@ void opc4(char nomContra[], char defContra[]); // 3.4
 int opc5(char usuario[], char defUsuario[], char contra[], char defContra[]); // 3.5
 void solAccion(int *opc); // 4
 void opcEsc2(int opc, int * cont2); // 5
-void selAlumno(int opc, int opc2, char opcSel[][100], char grp[]); // 5.1
+void selAlumno(int opc, int opc2, char opcSel[][100], char grupo[]); // 5.1
 void opc2_0(char opcSel[][100], int opc); // 6
-void selAsignatura(int numAlum, int opc, int enc, char opcSel[][100], char grp[]); // 6.1
-void visCalificaciones(int grp, int numAlum, char asig[][30]); // 6.2
-void verRanking(char grp[], int gpo); // 6.3
-void modCalificacion(int alum, int gp, char grp[], int asig); // 6.4
-void iniciar_Estructura(int); // Iniciar estructura
+void selAsignatura(int numAlum, int opc, int enc, char opcSel[][100], char grupo[]); // 6.1
+void visCalificaciones(int grupo, int numAlum, char asig[][30]); // 6.2
+void verRanking(char grupo[], int gpo); // 6.3
+void modCalificacion(int alum, int indexGrupo, char grupo[], int asig); // 6.4
+void iniciarEstructura(int); // Iniciar estructura
 int gotoxy(USHORT x, USHORT y); // API de Windows
 char getch2(void); // API de Windows
-void tostring(char [], int); //Convertir int a string
+void toString(char [], int); //Convertir int a string
 void crearFicherosDirecciones(char *dirname); //Verificar si existen los ficheros y crealos en caso
 int existeArchivoAccesar(char *dirname);//Se puede acceder al fichero
 
@@ -914,7 +913,7 @@ void opc2_0(char opcSel[][100], int opc)
 }
 
 // Opcion que despliega la lista del grupo seleccionado. Funge para los 3 grupos existentes
-void selAlumno(int opc, int opc2, char opcSel[][100], char grp[])
+void selAlumno(int opc, int opc2, char opcSel[][100], char grupo[])
 {
 	int i, tecla, def = 1, selec = 1, var = 0; // Controladores
 	do
@@ -940,7 +939,7 @@ void selAlumno(int opc, int opc2, char opcSel[][100], char grp[])
 			gotoxy(41, 1+i); printf("*"); // Margen vertical derecho
 		}
 		gotoxy(3, 1); printf(opcSel[opc2]); // Imprimir el titulo del apartado escogido
-		gotoxy(30, 3); printf("*"); gotoxy(32, 3); printf("Grupo: "); gotoxy (39, 3); putchar(grp[opc]); // Imprimir el grupo seleccionado
+		gotoxy(30, 3); printf("*"); gotoxy(32, 3); printf("Grupo: "); gotoxy (39, 3); putchar(grupo[opc]); // Imprimir el grupo seleccionado
 		gotoxy(3, 5); printf("Seleccionar Alumno:");
 		// Mueve la coordenada x de acuerdo con la posicion de selec
 		if (selec ==51)
@@ -999,7 +998,7 @@ void selAlumno(int opc, int opc2, char opcSel[][100], char grp[])
 				
 				if (selec !=51)
 				{
-					selAsignatura(selec-1, opc, opc2, opcSel, grp);
+					selAsignatura(selec-1, opc, opc2, opcSel, grupo);
 				} else
 				{
 					def = 0; break; // Para la opcion Regresar
@@ -1011,7 +1010,7 @@ void selAlumno(int opc, int opc2, char opcSel[][100], char grp[])
 
 // Opcion que despliega la lista de asignaturas del plan de estudios, una vez se haya seleccionado el alumno
 // Funge para los 3 grupos existentes, para MODIFICAR CALIFICACIONES, y para VISUALIZAR CALIFICACIONES
-void selAsignatura(int numAlum, int opc, int enc, char opcSel[][100], char grp[])
+void selAsignatura(int numAlum, int opc, int enc, char opcSel[][100], char grupo[])
 {
 	int i, tecla, def = 1, selec = 1, var = 0, tab, tab2, tab3; // Controladores
 	char asig[8][30] = {"Español", "Matemáticas", "Historia", "Ciencias", "Artes", "Tecnología", "Formación Cívica Y Ética"};
@@ -1050,7 +1049,7 @@ void selAsignatura(int numAlum, int opc, int enc, char opcSel[][100], char grp[]
 			gotoxy(50+tab, 1+i); printf("*"); // Margen vertical derecho
 		}
 		gotoxy(3, 1); printf(opcSel[enc]); // Imprimir el titulo del apartado escogido
-		gotoxy(39+tab, 3); printf("* Grupo: "); gotoxy (48+tab, 3); putchar(grp[opc]); // Imprimir el grupo seleccionado
+		gotoxy(39+tab, 3); printf("* Grupo: "); gotoxy (48+tab, 3); putchar(grupo[opc]); // Imprimir el grupo seleccionado
 		gotoxy(3, 5); printf("%s", grupos[opc].numAlum[numAlum].nombre); // Imprimir el nombre del alumno
 		if (numAlum <9)
 		{
@@ -1117,7 +1116,7 @@ void selAsignatura(int numAlum, int opc, int enc, char opcSel[][100], char grp[]
 				case ENTER:
 					if (selec !=8) // Si se selecciona alguna asignatura del plan de estudios
 					{
-						modCalificacion(numAlum, opc, grp, selec); // Presentar la interfaz de usuario en la que se le solicitara el cambio al usuario, de la calificacion
+						modCalificacion(numAlum, opc, grupo, selec); // Presentar la interfaz de usuario en la que se le solicitara el cambio al usuario, de la calificacion
 					} else
 					{
 						def = 0; // Para la opcion Regresar
@@ -1143,7 +1142,7 @@ void selAsignatura(int numAlum, int opc, int enc, char opcSel[][100], char grp[]
 }
 
 // Presenta la interfaz de usuario en la que el usuario podra ingresar la nota nueva, la cual la haya considerado pertinente el usuario
-void modCalificacion(int alum, int gp, char grp[], int asig)
+void modCalificacion(int alum, int indexGrupo, char grupo[], int asig)
 {
 	int i, tecla, cont = 0, def = 1, selec = 1; // Controladores
 	// Asignaturas del plan de estudios de la escuela secundaria
@@ -1165,7 +1164,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 			gotoxy(strlen(materias[asig-1])+4, 1+i); printf("*"); // Margen vertical derecho
 		}
 		gotoxy(3, 1); printf(materias[asig-1]); // Imprimir la asignatura escogida
-		gotoxy(1, 4); printf("Alumno: "); puts(grupos[gp].numAlum[alum].nombre); // Imprimir el nombre del alumno
+		gotoxy(1, 4); printf("Alumno: "); puts(grupos[indexGrupo].numAlum[alum].nombre); // Imprimir el nombre del alumno
 		if (alum <9)
 		{
 			gotoxy(22, 4); printf("0%d", alum+1); // Para los primeros 10 alumnos
@@ -1173,7 +1172,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 		{
 			gotoxy(22, 4); printf("%d", alum+1); // Para los 40 alumnos restantes
 		}
-		gotoxy(35, 4); printf("Grupo: "); gotoxy(42, 4); putchar(grp[gp]); // Imprimir el grupo del alumno seleccionado
+		gotoxy(35, 4); printf("Grupo: "); gotoxy(42, 4); putchar(grupo[indexGrupo]); // Imprimir el grupo del alumno seleccionado
 		gotoxy(1, 6); printf("Introduzca La Calificación Nueva: "); // Solicitar la nota mas actualizada
 		// Se realiza la siguiente condicion de acuerdo a si se desea corregir la califacion, o alguna otra opcion
 		if (cont ==0) // Si se desea corregir la calificacion
@@ -1181,25 +1180,25 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 			// De acuerdo con la asginatura seleccionada, se procedera a almacenar la nueva nota en dicha asignatura
 			switch (asig)
 			{
-				case 1: scanf("%f", &grupos[gp].numAlum[alum].esp); break; // Para Espanol
-				case 2: scanf("%f", &grupos[gp].numAlum[alum].mate); break; // Para Matematicas
-				case 3: scanf("%f", &grupos[gp].numAlum[alum].hist); break; // Para Historia
-				case 4: scanf("%f", &grupos[gp].numAlum[alum].cienc); break; // Para Ciencias
-				case 5: scanf("%f", &grupos[gp].numAlum[alum].artes); break; // Para Artes
-				case 6: scanf("%f", &grupos[gp].numAlum[alum].tecno); break; // Para Tecnologia
-				case 7: scanf("%f", &grupos[gp].numAlum[alum].fcye); break; // Para Formacion civica y etica
+				case 1: scanf("%f", &grupos[indexGrupo].numAlum[alum].esp); break; // Para Espanol
+				case 2: scanf("%f", &grupos[indexGrupo].numAlum[alum].mate); break; // Para Matematicas
+				case 3: scanf("%f", &grupos[indexGrupo].numAlum[alum].hist); break; // Para Historia
+				case 4: scanf("%f", &grupos[indexGrupo].numAlum[alum].cienc); break; // Para Ciencias
+				case 5: scanf("%f", &grupos[indexGrupo].numAlum[alum].artes); break; // Para Artes
+				case 6: scanf("%f", &grupos[indexGrupo].numAlum[alum].tecno); break; // Para Tecnologia
+				case 7: scanf("%f", &grupos[indexGrupo].numAlum[alum].fcye); break; // Para Formacion civica y etica
 			}
 		} else // Si se oprimen las flechas de movimiento del puntero, se imprimira la calificacion ingresada
 		{
 			switch (asig)
 			{
-				case 1: printf("%.1f", grupos[gp].numAlum[alum].esp); break; // Para Espanol
-				case 2: printf("%.1f", grupos[gp].numAlum[alum].mate); break; // Para Matematicas
-				case 3: printf("%.1f", grupos[gp].numAlum[alum].hist); break; // Para Historia
-				case 4: printf("%.1f", grupos[gp].numAlum[alum].cienc); break; // Para Ciencias
-				case 5: printf("%.1f", grupos[gp].numAlum[alum].artes); break; // Para Artes
-				case 6: printf("%.1f", grupos[gp].numAlum[alum].tecno); break; // Para Tecnologia
-				case 7: printf("%.1f", grupos[gp].numAlum[alum].fcye); break; // Para Formacion civica y etica
+				case 1: printf("%.1f", grupos[indexGrupo].numAlum[alum].esp); break; // Para Espanol
+				case 2: printf("%.1f", grupos[indexGrupo].numAlum[alum].mate); break; // Para Matematicas
+				case 3: printf("%.1f", grupos[indexGrupo].numAlum[alum].hist); break; // Para Historia
+				case 4: printf("%.1f", grupos[indexGrupo].numAlum[alum].cienc); break; // Para Ciencias
+				case 5: printf("%.1f", grupos[indexGrupo].numAlum[alum].artes); break; // Para Artes
+				case 6: printf("%.1f", grupos[indexGrupo].numAlum[alum].tecno); break; // Para Tecnologia
+				case 7: printf("%.1f", grupos[indexGrupo].numAlum[alum].fcye); break; // Para Formacion civica y etica
 			}
 		}
 		cont = 1; // Para que la flecha se pueda mover sin que se vuelva a solicitar de nuevo la calificacion
@@ -1250,7 +1249,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 	} while (def !=0); // Mientras no se apriente a Guardar Cambios
 	
 	//Antes de salir de la funcion calcular el promedio del alumno de nuevo
-	grupos[gp].numAlum[alum].prom = (grupos[gp].numAlum[alum].esp+grupos[gp].numAlum[alum].mate+grupos[gp].numAlum[alum].hist+grupos[gp].numAlum[alum].cienc+grupos[gp].numAlum[alum].artes+grupos[gp].numAlum[alum].tecno+grupos[gp].numAlum[alum].fcye)/7;
+	grupos[indexGrupo].numAlum[alum].prom = (grupos[indexGrupo].numAlum[alum].esp+grupos[indexGrupo].numAlum[alum].mate+grupos[indexGrupo].numAlum[alum].hist+grupos[indexGrupo].numAlum[alum].cienc+grupos[indexGrupo].numAlum[alum].artes+grupos[indexGrupo].numAlum[alum].tecno+grupos[indexGrupo].numAlum[alum].fcye)/7;
 
 	//archivo al cual se accede
 	FILE *archivo;
@@ -1267,7 +1266,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 	//String de la conversion del int
 	char convertirInt[10];
 
-	if(gp == 0){
+	if(indexGrupo == 0){
 		//Nombre de la carpeta
 		char* nombreCarpeta = "/A";
 	
@@ -1275,7 +1274,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 		strcat(dirname,nombreCarpeta);
 		
 		//Agrega el numero del alumno
-		tostring(convertirInt, alum+1);
+		toString(convertirInt, alum+1);
 				
 		//Se le agrega al string
 		strcat(nombreAlumno,convertirInt);
@@ -1301,7 +1300,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 		}
 		
 		//Modificar el archivo de texto que contiene estos datos
-		fwrite (&grupos[gp].numAlum[alum], sizeof(asig), 20, archivo);
+		fwrite (&grupos[indexGrupo].numAlum[alum], sizeof(asig), 20, archivo);
 		
 		//Checa si la funcion anterior funciono de manera correcta
 		if(fwrite != 0){
@@ -1313,7 +1312,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 		fclose (archivo);
 	}
 	
-	if(gp == 1){
+	if(indexGrupo == 1){
 		
 		//Nombre de la carpeta
 		char* nombreCarpeta = "/B";
@@ -1322,7 +1321,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 		strcat(dirname,nombreCarpeta);
 		
 		//Agrega el numero del alumno
-		tostring(convertirInt, alum+1);
+		toString(convertirInt, alum+1);
 				
 		//Se le agrega al string
 		strcat(nombreAlumno,convertirInt);
@@ -1345,7 +1344,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 		}
 		
 		//Modificar el archivo de texto que contiene estos datos
-		fwrite (&grupos[gp].numAlum[alum], sizeof(asig), 20, archivo);
+		fwrite (&grupos[indexGrupo].numAlum[alum], sizeof(asig), 20, archivo);
 		
 		//Checa si la funcion anterior funciono de manera correcta
 		if(fwrite != 0){
@@ -1357,7 +1356,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 		fclose (archivo);
 	}
 	
-	if(gp == 2){
+	if(indexGrupo == 2){
 		
 		//Nombre de la carpeta
 		char* nombreCarpeta = "/C";
@@ -1366,7 +1365,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 		strcat(dirname,nombreCarpeta);
 		
 		//Agrega el numero del alumno
-		tostring(convertirInt, alum+1);
+		toString(convertirInt, alum+1);
 				
 		//Se le agrega al string
 		strcat(nombreAlumno,convertirInt);
@@ -1389,7 +1388,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 		}
 		
 		//Modificar el archivo de texto que contiene estos datos
-		fwrite (&grupos[gp].numAlum[alum], sizeof(asig), 20, archivo);
+		fwrite (&grupos[indexGrupo].numAlum[alum], sizeof(asig), 20, archivo);
 		
 		//Checa si la funcion anterior funciono de manera correcta
 		if(fwrite != 0){
@@ -1403,7 +1402,7 @@ void modCalificacion(int alum, int gp, char grp[], int asig)
 }
 
 // Se imprime el ranking de los 3 mejores, de acuerdo con el grupo seleccionado
-void verRanking(char grp[], int gpo)
+void verRanking(char grupo[], int gpo)
 {
 	int i, j; // Contadores
 	int pos[3]; // Almacena las posiciones de los 3 mejores
@@ -1447,7 +1446,7 @@ void verRanking(char grp[], int gpo)
 			gotoxy(33, 1+i); printf("*"); // Margen vertical derecho
 		}
 		gotoxy(3, 1); printf("VISUALIZAR RANKING"); // Imprimir el titulo del apartado escogido
-		gotoxy(21, 1); printf(" - Grupo: "); gotoxy (31, 1); putchar(grp[gpo]); // Imprimir el grupo seleccionado
+		gotoxy(21, 1); printf(" - Grupo: "); gotoxy (31, 1); putchar(grupo[gpo]); // Imprimir el grupo seleccionado
 		gotoxy(2, 4); printf("Top: 3 Mejores Promedios:");
 		// Imprimir a los 3 mejores promedios, una vez ya determinados
 		for (i = 0; i <3; i++)
@@ -1485,7 +1484,7 @@ void verRanking(char grp[], int gpo)
 }
 
 // Despliega las notas finales obtuvidas, por cada alumno, de un determinado grupo, y finalmente despliega su promedio final
-void visCalificaciones(int grp, int numAlum, char asig[][30])
+void visCalificaciones(int grupo, int numAlum, char asig[][30])
 {
 	int i, j, x; // Contadores
 	// Se imprimen puntitos (.) como decoracion
@@ -1500,18 +1499,18 @@ void visCalificaciones(int grp, int numAlum, char asig[][30])
 		}
 	}
 	// Imprime las calificaciones del alumno seleccionado, por asignatura
-	gotoxy(45, 10); printf("%.1f", grupos[grp].numAlum[numAlum].esp); // Para Espanol
-	gotoxy(45, 11); printf("%.1f", grupos[grp].numAlum[numAlum].mate); // Para Matematicas
-	gotoxy(45, 12); printf("%.1f", grupos[grp].numAlum[numAlum].hist); // Para Historia
-	gotoxy(45, 13); printf("%.1f", grupos[grp].numAlum[numAlum].cienc); // Para Ciencias
-	gotoxy(45, 14); printf("%.1f", grupos[grp].numAlum[numAlum].artes); // Para Artes
-	gotoxy(45, 15); printf("%.1f", grupos[grp].numAlum[numAlum].tecno); // Para Tecnologia
-	gotoxy(45, 16); printf("%.1f", grupos[grp].numAlum[numAlum].fcye); // Para Formacion Civica Y Etica
-	gotoxy(x+j-9, 18); printf ("Promedio: "); printf("%.1f", grupos[grp].numAlum[numAlum].prom); // Para Promedio
+	gotoxy(45, 10); printf("%.1f", grupos[grupo].numAlum[numAlum].esp); // Para Espanol
+	gotoxy(45, 11); printf("%.1f", grupos[grupo].numAlum[numAlum].mate); // Para Matematicas
+	gotoxy(45, 12); printf("%.1f", grupos[grupo].numAlum[numAlum].hist); // Para Historia
+	gotoxy(45, 13); printf("%.1f", grupos[grupo].numAlum[numAlum].cienc); // Para Ciencias
+	gotoxy(45, 14); printf("%.1f", grupos[grupo].numAlum[numAlum].artes); // Para Artes
+	gotoxy(45, 15); printf("%.1f", grupos[grupo].numAlum[numAlum].tecno); // Para Tecnologia
+	gotoxy(45, 16); printf("%.1f", grupos[grupo].numAlum[numAlum].fcye); // Para Formacion Civica Y Etica
+	gotoxy(x+j-9, 18); printf ("Promedio: "); printf("%.1f", grupos[grupo].numAlum[numAlum].prom); // Para Promedio
 }
 
 // Inicializar las calificaciones y promedios de todos los alumnos, por cada grupo, por defecto
-void iniciar_Estructura(int index)
+void iniciarEstructura(int index)
 {
 	int j; // Contadores
 	// Llena, por defecto, las calificaciones del alumno seleccionado, por asignatura
@@ -1519,13 +1518,13 @@ void iniciar_Estructura(int index)
 	for (j = 0; j <K; j++) // Va cambiando el numero de alumno
 	{
 		strcpy(grupos[index].numAlum[j].nombre, "Nombre_Alumno"); // Para Nombre
-		grupos[index].numAlum[j].esp = 10; // Para Espanol
-		grupos[index].numAlum[j].mate = 10; // Para Matematicas
-		grupos[index].numAlum[j].hist = 10; // Para Historia
-		grupos[index].numAlum[j].cienc = 10; // Para Ciencias
-		grupos[index].numAlum[j].artes = 10; // Para Artes
-		grupos[index].numAlum[j].tecno = 10; // Para Tecnologia
-		grupos[index].numAlum[j].fcye = 10; // Para Formacion Civica Y Etica
+		grupos[index].numAlum[j].esp = 1; // Para Espanol
+		grupos[index].numAlum[j].mate = 1; // Para Matematicas
+		grupos[index].numAlum[j].hist = 1; // Para Historia
+		grupos[index].numAlum[j].cienc = 1; // Para Ciencias
+		grupos[index].numAlum[j].artes = 1; // Para Artes
+		grupos[index].numAlum[j].tecno = 1; // Para Tecnologia
+		grupos[index].numAlum[j].fcye = 1; // Para Formacion Civica Y Etica
 		// Calcular el promedio
 		grupos[index].numAlum[j].prom = (grupos[index].numAlum[j].esp+grupos[index].numAlum[j].mate+grupos[index].numAlum[j].hist+grupos[index].numAlum[j].cienc+grupos[index].numAlum[j].artes+grupos[index].numAlum[j].tecno+grupos[index].numAlum[j].fcye)/7;
 	}
@@ -1541,7 +1540,7 @@ int existeArchivoAccesar(char *dirname)
 }
 
 //Convertir a string
-void tostring(char str[], int num)
+void toString(char str[], int num)
 {
 	int i, rem, len = 0, n;
 	
@@ -1606,7 +1605,7 @@ void crearFicherosDirecciones(char *dirname){
 				char nombreAlumno[20] = "/Nombre_Alumno";
 				
 				//Agrega el numero del alumno
-				tostring(convertirInt, contador);
+				toString(convertirInt, contador);
 				
 				//Se le agrega al string
 				strcat(nombreAlumno,convertirInt);
@@ -1637,7 +1636,7 @@ void crearFicherosDirecciones(char *dirname){
 					//printf("archivo %s se creo\n", nombreAlumno);
 				}else{
 					//Se creara estrucura si no existe la carpeta grupos
-					iniciar_Estructura(0);
+					iniciarEstructura(0);
 					check = mkdir(auxCarpetaGrupo);
 					
 					//Checa si la carpeta 'Grupo/A' existe
@@ -1650,7 +1649,7 @@ void crearFicherosDirecciones(char *dirname){
 							strcpy(aux, auxCarpetaGrupo);
 							char nombreAlumno[20] = "/Nombre_Alumno";
 							
-							tostring(convertirInt, contador);
+							toString(convertirInt, contador);
 							strcat(nombreAlumno,convertirInt);
 							
 							strcat(nombreAlumno,extension);
@@ -1716,7 +1715,7 @@ void crearFicherosDirecciones(char *dirname){
 			char nombreAlumno[20] = "/Nombre_Alumno";
 			
 			//Agrega el numero del alumno
-			tostring(convertirInt, contador);
+			toString(convertirInt, contador);
 			
 			//Se le agrega al string
 			strcat(nombreAlumno,convertirInt);
@@ -1747,7 +1746,7 @@ void crearFicherosDirecciones(char *dirname){
 				//printf("archivo %s se creo\n", nombreAlumno);
 			}else{
 				//Temporal para pruebas, cuando acabe solo se creara estrucura si no existe la carpeta grupos
-				iniciar_Estructura(1);
+				iniciarEstructura(1);
 				check = mkdir(auxCarpetaGrupo);
 				
 				//Checa sino existe la ruta 'Grupo/B'
@@ -1760,7 +1759,7 @@ void crearFicherosDirecciones(char *dirname){
 						strcpy(aux, auxCarpetaGrupo);
 						char nombreAlumno[20] = "/Nombre_Alumno";
 						
-						tostring(convertirInt, contador);
+						toString(convertirInt, contador);
 						strcat(nombreAlumno,convertirInt);
 						
 						strcat(nombreAlumno,extension);
@@ -1825,7 +1824,7 @@ void crearFicherosDirecciones(char *dirname){
 			char nombreAlumno[20] = "/Nombre_Alumno";
 			
 			//Agrega el numero del alumno
-			tostring(convertirInt, contador);
+			toString(convertirInt, contador);
 			
 			//Se le agrega al string
 			strcat(nombreAlumno,convertirInt);
@@ -1854,7 +1853,7 @@ void crearFicherosDirecciones(char *dirname){
 				//printf("archivo %s se creo\n", nombreAlumno);
 			}else{
 				//Se creara estrucura si no existe la carpeta grupos
-				iniciar_Estructura(2);
+				iniciarEstructura(2);
 				check = mkdir(auxCarpetaGrupo);
 				
 				//Verifica si existe la carpeta 'Grupo/C'
@@ -1866,7 +1865,7 @@ void crearFicherosDirecciones(char *dirname){
 						strcpy(aux, auxCarpetaGrupo);
 						char nombreAlumno[20] = "/Nombre_Alumno";
 						
-						tostring(convertirInt, contador);
+						toString(convertirInt, contador);
 						strcat(nombreAlumno,convertirInt);
 						
 						strcat(nombreAlumno,extension);
@@ -1927,7 +1926,7 @@ void crearFicherosDirecciones(char *dirname){
 			//Se crea Grupo/A
 			check = mkdir(auxCarpetaGrupo);
 			//Se creara estrucura si no existe la carpeta grupos
-			iniciar_Estructura(0);
+			iniciarEstructura(0);
 			if (!check){
 				//printf("Directorio '%s' creado\n", auxCarpetaGrupo);
 				
@@ -1938,7 +1937,7 @@ void crearFicherosDirecciones(char *dirname){
 					strcpy(aux, auxCarpetaGrupo);
 					char nombreAlumno[20] = "/Nombre_Alumno";
 					
-					tostring(convertirInt, contador);
+					toString(convertirInt, contador);
 					strcat(nombreAlumno,convertirInt);
 					
 					strcat(nombreAlumno,extension);
@@ -1990,7 +1989,7 @@ void crearFicherosDirecciones(char *dirname){
 			//Se crea Grupo/B
 			check = mkdir(auxCarpetaGrupo);
 			//Se creara estrucura si no existe la carpeta grupos
-			iniciar_Estructura(1);
+			iniciarEstructura(1);
 			if (!check){
 				//printf("Directorio '%s' creado\n", auxCarpetaGrupo);
 				
@@ -2001,7 +2000,7 @@ void crearFicherosDirecciones(char *dirname){
 						strcpy(aux, auxCarpetaGrupo);
 						char nombreAlumno[20] = "/Nombre_Alumno";
 							
-						tostring(convertirInt, contador);
+						toString(convertirInt, contador);
 						strcat(nombreAlumno,convertirInt);
 							
 						strcat(nombreAlumno,extension);
@@ -2055,7 +2054,7 @@ void crearFicherosDirecciones(char *dirname){
 			//Se crea Grupo/C
 			check = mkdir(auxCarpetaGrupo);
 			//Se creara estrucura si no existe la carpeta grupos
-			iniciar_Estructura(2);
+			iniciarEstructura(2);
 			if (!check){
 				//printf("Directorio '%s' creado\n", auxCarpetaGrupo);
 				
@@ -2066,7 +2065,7 @@ void crearFicherosDirecciones(char *dirname){
 					strcpy(aux, auxCarpetaGrupo);
 					char nombreAlumno[20] = "/Nombre_Alumno";
 					
-					tostring(convertirInt, contador);
+					toString(convertirInt, contador);
 					strcat(nombreAlumno,convertirInt);
 					
 					strcat(nombreAlumno,extension);
